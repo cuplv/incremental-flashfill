@@ -1,224 +1,190 @@
-#Reference: http://research.microsoft.com/en-us/um/people/sumitg/pubs/popl11-synthesis.pdf
+#Automating String Processing in Spreadsheets Using Input-Output Examples
+
 import re
 import itertools
 
-class ConstStr:
-    def __init__(self, s):
-	self.s = s
+#Data Structures
 
 class CPos:
-    def __init__(self, p):
-	self.p = p
+    def __init__(self, pos):
+	self.pos = pos
+	
+    def print_object(self):
+	print 'CPos(', self.pos, ')'
 
 class Pos:
-    def __init__(self, r1, r2, c):
-	self.r1 = r1
-	self.r2 = r2
-	self.c = c
+    def __init__(self, regexes_1, regexes_2, c_s):
+	self.regexes_1 = regexes_1
+	self.regexes_2 = regexes_2
+	self.c_s = c_s
 
-class Substr:
-    def __init__(self, v_i, y1, y2):
-	self.v_i = v_i
-	self.y1 = y1
-	self.y2 = y2
+    def print_object(self):
+	print 'Pos(', regexes_1, regexes_2, c_s, ')'
 
-def TokenSequence(s):
-    TS = ""
-    for char in s:
-	if char >= 'A' and char <= 'Z':
-	    TS += "U"
-	elif char >= 'a' and char <= 'z':
-	    TS += "L"
-	elif char == ' ':
-	    TS += "S"
-    if len(s) == 0:
-	return "E"
-    return 'TS('+ ''.join(ch for ch, _ in itertools.groupby(TS)) + ')'
+class ConstStr:
+    def __init__(self, str):
+	self.str = str
 
-def ConcatenateTokenSequence(a, b):
-    return "TS(" + a.split("TS(")[1].split(")")[0] + b.split("TS(")[1].split(")")[0] + ")"
+    def print_object(self):
+	print 'ConstStr(', self.str, ')'
 
-def MatchTokenSequence(T, s):
-    regex = ''
+class SubStr:
+    def __init__(self, str, positions_1, positions_2):
+	self.str = str
+	self.positions_1 = positions_1
+	self.positions_2 = positions_2
 
-    if 'TS' in T:
-	T = T.split("TS(")[1].split(")")[0]
-    else:
-	return regex
+    def print_object(self):
+	print 'SubStr(', str, positions_1, positions_2, ')'
 
-    for token in T:
-	if token == 'U':
-	    regex += '[A-Z]+'
-        elif token == 'L':
-	    regex += '[a-z]+'
-	elif token == 'S':
-	    regex += '\ +'
-    return regex
+class IParts:
+    def __init__(self, s, t):
+	self.s = s
+	self.t = t
 
-def IParts(T, s):
-    return T
+    def print_object(self):
+	print 'IParts(', s, t, ')'
 
-def generateRegex(T, s):
-    if T == "E":
-	return ["E"]
-    else:
-        tokens = T.split("TS(")[1].split(")")[0] 
-	regex = ""
-	for token in tokens:
-	    regex += IParts(token, s)
-	regex = "TS(" + regex + ")"
-        return [regex]
+class DAG:
+    def __init__(self, nodes, source_node, target_node, edges, WW):
+	self.nodes = nodes
+	self.source_node = source_node
+	self.target_node = target_node
+	self.edges = edges
+	self.WW = WW
 
-def generatePosition(s, k):
-    #s - Input column
-    #k - Start index of substring in the input column
-    print "8) In generatePosition for", s, "and pos", k
+    def print_object(self):
+	print 'DAG(', self.nodes, self.source_node, self.target_node, self.edges, self.WW, ')'
+
+#Utility Functions
+def substring(s, i, j):
+    return s[i:j+1]
+
+def find_token_sequence(s):
+    s = re.sub('[A-Z]', 'U', s)
+    s = re.sub('[a-z]', 'L', s)
+    s = re.sub(' ', 'S', s)
  
-    result = set([CPos(k), CPos(-(len(s) - k))])
-	
-    if k == 0:
-	print "9)", "''", TokenSequence('')
+    #Removing consecutive duplicates in s
+    return ''.join([x[0] for x in itertools.groupby(s)])
 
-    r1 = list() 
-    k1_seq = list()
-    for k1 in range(0, k):
-	string = s[k1:k]
-	token_sequence = TokenSequence(string)
-	print "9)", string, token_sequence
-        r1.append(token_sequence)
-	k1_seq.append(k1)
-    print
+def regex(s):
+    s = re.sub('U', '[A-Z]+', s)
+    s = re.sub('L', '[a-z]+', s)
+    s = re.sub('S', '\ +', s)
+    return s
 
-    r2 = list()
-    k2_seq = list()
-    for k2 in range(k+1, len(s)+1):
-	string = s[k:k2]
-        token_sequence = TokenSequence(string)
-	print "10)", string, token_sequence
-	r2.append(token_sequence)
-	k2_seq.append(k2)
-    print
+def match(reg, s):
+    matches = []
+    for i in range(0, len(s)):
+	for j in range(i+1, len(s)+1):
+	    matches += re.findall(regex(reg), s[i:j])
+    return matches
 
-    for a in r1:
-	for b in r2:
-	    r12 = ConcatenateTokenSequence(a, b)
-            print "11) r12=", r12
-	    regex = MatchTokenSequence(r12, s)
-	
-	    matches = list()
-            for i in range(0, len(s)+1):
-		for j in range(i+1, len(s)+1):
-		    substring = s[i:j+1]
-		    match = re.findall(regex, substring)
-		    if len(match) == 1:
-		         matches.append(match[0])
-	    matches = list(set(matches)) 
- 	    print "12) Matches", matches
- 
-            c_dash = len(matches)
-	    print "13) c' = ", c_dash
+def unify_positions(positions1, positions2):
+    result = list()
+    for p1 in positions1:
+	for p2 in positions2:
+	    if p1.__class__.__name__ == p2.__class__.__name__:
+		if p1.__class__.__name__ == 'CPos':
+		    k1 = p1.pos
+		    k2 = p2.pos
+                    print (k2 - k1),'w',k1
+    return positions1
 
-	    k1 = k1_seq[r1.index(a)]
-	    k2 = k2_seq[r2.index(b)] - 1
+def unify_data_structures(ff1, ff2):
+    if ff1.__class__.__name__ == 'ConstStr':
+	if ff1.str == ff2.str:
+    	    return ff1
 
-	    substring = s[k1:k2+1]
-	    print "14) s[k1:k2]:", substring
-     
-            c = matches.index(substring)
-	    print "15) c = ", c
+    elif ff1.__class__.__name__ == 'SubStr':
+	if ff1.str == ff2.str:
+	    return SubStr(ff1.str, unify_positions(ff1.positions_1, ff2.positions_2), unify_positions(ff1.positions_2, ff2.positions_2))
+    
+def unify_formulae(f1, f2):
+    result = list()
 
-            r1_dash = generateRegex(a, s)
-	    r2_dash = generateRegex(b, s)
-     
-            print "16) r1_dash: ", r1_dash
-	    print "17) r2_dash: ", r2_dash
-        
-	    positions = list()
-            for reg1 in r1_dash:
-		for reg2 in r2_dash:
-		    for regc in [c, -(c_dash - c + 1)]:
-                        p = Pos(reg1, reg2, regc)
-			positions.append(p)
+    for ff1 in f1:
+	for ff2 in f2:
+            if ff1.__class__.__name__ == ff2.__class__.__name__:
+		result.append(unify_data_structures(ff1, ff2))
+    return list(set(result))
 
-	    result = result.union(set(positions))
-            print "result", list(result)
-	    print
-    return result
-        
-def generateSubstring(sigma, s):
-    #sigma - List of input columns
-    #s - substring
-    print "5) In generateSubstring for", s
-    result = set()
+def unify(dag1, dag2):
+    nodes = list(itertools.product(dag1.nodes, dag2.nodes))
+    source_node = (dag1.source_node, dag2.source_node)
+    target_node = (dag1.target_node, dag2.target_node)
+    edges = list()
+    for edge1 in dag1.edges:
+	for edge2 in dag2.edges:
+	     edges += [(edge1[0], edge2[0]), (edge1[1], edge2[1])]
+    
+    for f1 in dag1.WW.values():
+        for f2 in dag2.WW.values():
+	     unify_formulae(f1, f2)
 
-    matches = list()
-    for i in range(0, len(sigma)):
-        for match in re.finditer(re.escape(s), sigma[i]):
-            matches.append((i, match.start()))
+def is_substr_at(str, substr):
+    return [m.start() for m in re.finditer(substr, str)]
+
+#Functions
+def generate_regex(r, s):
+    return [IParts(s, t) for t in r]
+    
+def generate_position(s, k):
+    result = [CPos(k), CPos(-(len(s) - k))]
    
-    for i,k in matches:
-         print "6) Matches found in column", i, '=', sigma[i]
-         print "7) Match: At pos", k, '=', str(sigma[i][k:len(s)+k])
-         print
-
-         y1 = generatePosition(sigma[i], k)
-	 y2 = generatePosition(sigma[i], k + len(s))
+    #r1 : Set of all regexes that match s[k1:k-1] for some k1
+    #r2 : Set of all regexes that match s[k:k2] for some k2
+    rr1 = [find_token_sequence(substring(s, k1, k-1)) for k1 in range(0, k)]
+    rr2 = [find_token_sequence(substring(s, k, k2)) for k2 in range(k+1, len(s)+1)]
+    
+    for r1, r2 in itertools.product(rr1, rr2):
+        r12 = r1 + r2
+        
+	matches = match(r12, s)
+        substr = substring(s, rr1.index(r1), k+rr2.index(r2)+1)
+        c = matches.index(substr)
+        cc = len(matches)
+        
+        R1 = generate_regex(r1, s)
+	R2 = generate_regex(r2, s)        
+	
+        result.append(Pos(R1, R2, [c, -(cc - c + 1)]))
  
-         substrings = list()
-         for reg_y1 in y1:
-	     for reg_y2 in y2:
-	         substrings.append(Substr(sigma[i], reg_y1, reg_y2))
+    return list(set(result))
 
-         result = result.union(set(substrings))
-    return result
-   
-def generateStr(sigma, s):
-    #sigma - List of input columns
-    #s - Output string
-    nodes = set([i for i in xrange(len(s))])
-    source_node = set([0])
-    target_node = set([len(s)])
+def generate_substring(sigma, s):
+    result = []
+    for i, column in enumerate(sigma):
+        for k in is_substr_at(column, s):
+	    y1 = generate_position(column, k)
+	    y2 = generate_position(column, k + len(s))
+            result.append(SubStr(column, y1, y2))
+    return list(set(result))
 
-    edges = []
-    for j in range(1, len(s)+1):
-        for i in range(0, j):
-	   edges.append((i, j)) 
-    print "3) Edges:", edges
-    print
+def generate_loop(sigma, s, W):
+    WW = W
+    
+    for k3 in range(0, len(s)):
+	for k2 in range(0, len(s)):
+	    for k1 in range(0, len(s)):
+                if k1<= k2-1 and k2<=k3:
+		    E1 = generate_str(sigma, substring(s, k1, k2-1))
+                    E2 = generate_str(sigma, substring(s, k2, k3))
+		    unify(E1, E2)
+    return WW
 
+def generate_str(sigma, s):
+    nodes = [i for i in range(0, len(s)+1)]
+    source_node, target_node = 0, len(s)
+    edges = [(i, j) for j in range(1, len(s)+1) for i in range(0, j)]
+    
     W = {}
     for edge in edges:
-        i = edge[0]
-        j = edge[1]
-        substring = s[i:j]
-        print "4) Calling generateSubstring on", substring
-        W[(i,j)] = set([substring]).union(generateSubstring(sigma, substring))
-	print "16) W: ", W 
+        substr = substring(s, edge[0], edge[1] - 1)
+	W[edge] = [ConstStr(substr)] + generate_substring(sigma, substr)
     
-    generateLoop(sigma, s, W)            
-    #W = {edge:set([ConstStr(s[edge[0]:edge[1]-1])]).union(set(generateSubstring(sigma, s[edge[0]:edge[1]-1]))) for edge in edges}
+    WW = generate_loop(sigma, s, W)
+    return DAG(nodes, source_node, target_node, edges, WW)
 
-def generateLoop(sigma, s, W):
-    W_dash = W
-
-    e1_dash = list()
-    e2_dash = list()
-
-    for k1 in range(0, len(s)+1):
-        for k2 in range(0, len(s)+1):
-            for k3 in range(0, len(s)+1):
-                e1 = generateStr(sigma, s[k1:k2+1])
-                print "17) e1 =", e1
-
-def generateStringProgram(S):
-    # S - Set of (sigma, s) pairs for input, output examples
-    T = set()
-    for each_input, each_output in S:
-      each_sigma = each_input.split(',')
-      print "1) Input:", each_sigma
-      print "2) Output:", each_output
-      print
-      generateStr(each_sigma, each_output)
-
-S = set([("Foo Bar","FB"), ("Text, String", "T")])
-generateStringProgram(S)
+generate_str(['Hello World'], 'HW')
