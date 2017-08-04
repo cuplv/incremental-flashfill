@@ -16,6 +16,8 @@ type ExampleInput      = Vec<SpreadsheetColumn>;
 // Assuming a set of tokens to get Example 3 from the paper to work
 // TODO - Figure out how to generate a comprehensive set of Tokens for a given set of input-output examples
 enum SpecialToken { SlashTok }
+
+#[derive(Clone)]
 enum Token        { SpecialToken }
 type RegularExpr  = Vec<Token>;
 
@@ -53,6 +55,14 @@ fn util_vec_diff<T> (a: Vec<T>, b:Vec<T>) -> Vec<T> {
 fn util_bool_expr_sort (b_vec:Vec<ExampleInputSet>, e_vec:Vec<DAG>) -> Traces {
     panic!();
 }
+
+fn util_compatibility (e_vec1:Vec<DAG>, e_vec2:Vec<DAG>) -> bool {
+    panic!();
+}
+
+fn iParts (tok:Token, s:String) -> Token {
+    panic!();
+}
     
 fn generate_string_program (example_inputs:Vec<ExampleInput>, example_outputs:Vec<SpreadsheetColumn>) -> StringExpr {
     let mut b_vec_init:  Vec<ExampleInputSet> = Vec::new();
@@ -77,32 +87,36 @@ fn generate_string_program (example_inputs:Vec<ExampleInput>, example_outputs:Ve
 }
 
 fn generate_partition (example_inputs:Vec<ExampleInput>, example_outputs:Vec<SpreadsheetColumn>) -> Traces {
-  panic!();
+    panic!();
 }
 
 fn generate_bool_classifier (example_inputs1:Vec<ExampleInput>, example_inputs2:Vec<ExampleInput>) -> Bool {
-  panic!();
+    panic!();
 }
 
 fn generate_str (example_input:ExampleInput, example_output:SpreadsheetColumn) -> DAG {
-  panic!();
+    panic!();
 }
 
 // TODO Add parameter W
 fn generate_loop (example_input:ExampleInput, example_output:SpreadsheetColumn) {
-  panic!();
+    panic!();
 }
 
 fn generate_substring (example_input:ExampleInput, s:String) {
-  panic!();
+    panic!();
 }
 
 fn generate_position (s:String, k:int) {
-  panic!();
+    panic!();
 }
 
-fn generate_regex (r:RegularExpr, s:String) {
-  panic!();
+fn generate_regex (r:RegularExpr, s:String) -> RegularExpr {
+    let mut regex: Vec<Token> = Vec::new();
+    for i in 0..r.len() {
+        regex.push(iParts(r[i].clone(), s.clone()));
+    }
+    regex
 }
     
 /*
