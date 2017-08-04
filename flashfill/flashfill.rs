@@ -22,22 +22,20 @@ enum Token        { SpecialToken }
 type RegularExpr  = Vec<Token>;
 
 type int = i32;
-struct CPos      { k:int }
-struct Pos       { r1:RegularExpr, r2:RegularExpr, c:int }
-enum Position    { CPos, Pos }
+enum Position    { CPos {k:int},
+                   Pos  {r1:RegularExpr, r2:RegularExpr, c:int} }
 
 // TODO - Need to define struct Loop
-struct SubStr    { v:String, p1:Position, p2:Position }
-struct ConstStr  { s:String }
-
 // TODO - Redefine Concatenate to use DAGS to represent atomic expressions
-enum AtomicExpr  { SubStr, ConstStr }
+enum AtomicExpr  { SubStr   {v:String, p1:Position, p2:Position},
+                   ConstStr {s:String} }
 type Concatenate = Vec<AtomicExpr>;
 type DAG         = Concatenate;
 
 struct Match     { v:String, r:RegularExpr, k:int }
 struct NotMatch  { v:String, r:RegularExpr, k:int }
-enum Predicate   { Match, NotMatch}
+enum Predicate   { Match    {v:String, r:RegularExpr, k:int},
+                   NotMatch {v:String, r:RegularExpr, k:int} }
 
 type Conjuct = Vec<Predicate>;
 type Bool    = Vec<Conjuct>;
@@ -108,6 +106,11 @@ fn generate_substring (example_input:ExampleInput, s:String) {
 }
 
 fn generate_position (s:String, k:int) {
+    let mut result: Vec<Position> = Vec::new();
+    let cpos_init_1: Position = Position::CPos { k:k };
+    let cpos_init_2: Position = Position::CPos { k:(k - (s.len() as int)) };
+    result.push(cpos_init_1);
+    result.push(cpos_init_2);
     panic!();
 }
 
