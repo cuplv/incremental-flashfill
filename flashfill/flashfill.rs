@@ -1,3 +1,65 @@
+/* 
+  Reference: http://research.microsoft.com/en-us/um/people/sumitg/pubs/popl11-synthesis.pdf
+*/
+
+// The program takes user-defined input-output examples to synthesize a set a programs consistent with the examples.
+// The input of an example can span across multiple columns in a spreadsheet.
+// The output of an example is expressed in one spreadsheet column.
+// The contents of any spreadsheet cell is treated as a string.
+
+// For simplifying the implementation, I've used alternative data structures in many places.
+// For example, The paper represents the input of an example as a tuple of spreadsheet columns.
+// I'm using a Vec of spreadsheet columns instead. Column contents are represented as strings as mentioned before. 
+type SpreadsheetColumn = String;
+type ExampleInput      = Vec<SpreadsheetColumn>;
+
+// Assuming a set of tokens to get Example 3 from the paper to work
+// TODO - Figure out how to generate a comprehensive set of Tokens for a given set of input-output examples
+enum SpecialToken { SlashTok }
+enum Token        { SpecialToken }
+type RegularExpr  = Vec<Token>;
+
+type int = i32;
+struct CPos      { k:int }
+struct Pos       { r1:RegularExpr, r2:RegularExpr, c:int }
+enum Position    { CPos, Pos }
+
+// TODO - Need to define struct Loop
+struct SubStr    { v:String, p1:Position, p2:Position }
+struct ConstStr  { s:String }
+
+// TODO - Redefine Concatenate to use DAGS to represent atomic expressions
+enum AtomicExpr  { SubStr, ConstStr }
+type Concatenate = Vec<AtomicExpr>;
+
+struct Match     { v:String, r:RegularExpr, k:int }
+struct NotMatch  { v:String, r:RegularExpr, k:int }
+enum Predicate   { Match, NotMatch}
+
+type Conjuct = Vec<Predicate>;
+type Bool    = Vec<Conjuct>;
+
+struct Switch { b_vec:Vec<Bool>, e_vec:Vec<AtomicExpr> } 
+type StringExpr = Switch;
+
+fn generate_string_program (example_inputs:Vec<ExampleInput>, example_ouputs:Vec<SpreadsheetColumn>) {}
+
+fn generate_partition (example_inputs:Vec<ExampleInput>, example_outputs:Vec<SpreadsheetColumn>) {}
+
+fn generate_bool_classifier (example_inputs1:Vec<ExampleInput>, example_inputs2:Vec<ExampleInput>) {}
+
+fn generate_str (example_input:ExampleInput, example_output:SpreadsheetColumn) {}
+
+// TODO Add parameter W
+fn generate_loop (example_input:ExampleInput, example_output:SpreadsheetColumn) {}
+
+fn generate_substring (example_input:ExampleInput, s:String) {}
+
+fn generate_position (s:String, k:int) {}
+
+fn generate_regex (r:RegularExpr, s:String) {}
+    
+/*
 type State = Vec<String>;
 type StateSet = Vec<State>;
 
@@ -77,4 +139,6 @@ fn generate_string_program(input_states:Vec<State>, output_strings:Vec<String>) 
     t.push(tt);
   }
 }
+
+*/
 fn main() {}
