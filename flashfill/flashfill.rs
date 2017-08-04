@@ -8,7 +8,7 @@
 // The contents of any spreadsheet cell is treated as a string.
 
 // For simplifying the implementation, I've used alternative data structures in many places.
-// For example, The paper represents the input of an example as a tuple of spreadsheet columns.
+// For example, the paper represents the input of an example as a tuple of spreadsheet columns.
 // I'm using a Vec of spreadsheet columns instead. Column contents are represented as strings as mentioned before. 
 type SpreadsheetColumn = String;
 type ExampleInput      = Vec<SpreadsheetColumn>;
