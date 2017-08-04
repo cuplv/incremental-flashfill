@@ -31,6 +31,7 @@ struct ConstStr  { s:String }
 // TODO - Redefine Concatenate to use DAGS to represent atomic expressions
 enum AtomicExpr  { SubStr, ConstStr }
 type Concatenate = Vec<AtomicExpr>;
+type DAG         = Concatenate;
 
 struct Match     { v:String, r:RegularExpr, k:int }
 struct NotMatch  { v:String, r:RegularExpr, k:int }
@@ -39,25 +40,70 @@ enum Predicate   { Match, NotMatch}
 type Conjuct = Vec<Predicate>;
 type Bool    = Vec<Conjuct>;
 
-struct Switch { b_vec:Vec<Bool>, e_vec:Vec<AtomicExpr> } 
+struct Switch { bool_vec:Vec<Bool>, e_vec:Vec<DAG> } 
 type StringExpr = Switch;
 
-fn generate_string_program (example_inputs:Vec<ExampleInput>, example_ouputs:Vec<SpreadsheetColumn>) {}
+type ExampleInputSet = Vec<ExampleInput>;
+struct Traces { b_vec:Vec<ExampleInputSet>, e_vec:Vec<DAG> }
 
-fn generate_partition (example_inputs:Vec<ExampleInput>, example_outputs:Vec<SpreadsheetColumn>) {}
+fn util_vec_diff<T> (a: Vec<T>, b:Vec<T>) -> Vec<T> {
+    panic!();
+}
 
-fn generate_bool_classifier (example_inputs1:Vec<ExampleInput>, example_inputs2:Vec<ExampleInput>) {}
+fn util_bool_expr_sort (b_vec:Vec<ExampleInputSet>, e_vec:Vec<DAG>) -> Traces {
+    panic!();
+}
+    
+fn generate_string_program (example_inputs:Vec<ExampleInput>, example_outputs:Vec<SpreadsheetColumn>) -> StringExpr {
+    let mut b_vec_init:  Vec<ExampleInputSet> = Vec::new();
+    let mut e_vec_init:  Vec<DAG>             = Vec::new();
+    let mut traces:      Traces               = Traces { b_vec:b_vec_init, e_vec:e_vec_init };
+    
+    for i in 0..example_inputs.len() {
+        traces.b_vec.push(vec![example_inputs[i].clone()]);
+        let dag = generate_str(example_inputs[i].clone(), example_outputs[i].clone());
+        traces.e_vec.push(dag);
+    }
+    traces = generate_partition(example_inputs, example_outputs);
 
-fn generate_str (example_input:ExampleInput, example_output:SpreadsheetColumn) {}
+    let mut bool_classifiers: Vec<Bool> = Vec::new();
+    for i in 0..traces.b_vec.len() {
+        bool_classifiers.push(generate_bool_classifier(traces.b_vec[i].clone(), traces.b_vec[i].clone()));
+    }
+    traces = util_bool_expr_sort(traces.b_vec, traces.e_vec);
+
+    let switch: Switch = Switch { bool_vec:bool_classifiers, e_vec:traces.e_vec };
+    switch
+}
+
+fn generate_partition (example_inputs:Vec<ExampleInput>, example_outputs:Vec<SpreadsheetColumn>) -> Traces {
+  panic!();
+}
+
+fn generate_bool_classifier (example_inputs1:Vec<ExampleInput>, example_inputs2:Vec<ExampleInput>) -> Bool {
+  panic!();
+}
+
+fn generate_str (example_input:ExampleInput, example_output:SpreadsheetColumn) -> DAG {
+  panic!();
+}
 
 // TODO Add parameter W
-fn generate_loop (example_input:ExampleInput, example_output:SpreadsheetColumn) {}
+fn generate_loop (example_input:ExampleInput, example_output:SpreadsheetColumn) {
+  panic!();
+}
 
-fn generate_substring (example_input:ExampleInput, s:String) {}
+fn generate_substring (example_input:ExampleInput, s:String) {
+  panic!();
+}
 
-fn generate_position (s:String, k:int) {}
+fn generate_position (s:String, k:int) {
+  panic!();
+}
 
-fn generate_regex (r:RegularExpr, s:String) {}
+fn generate_regex (r:RegularExpr, s:String) {
+  panic!();
+}
     
 /*
 type State = Vec<String>;
