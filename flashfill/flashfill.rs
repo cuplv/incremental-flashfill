@@ -2,6 +2,8 @@
   Reference: http://research.microsoft.com/en-us/um/people/sumitg/pubs/popl11-synthesis.pdf
 */
 
+use std::collections::HashMap;
+
 // The program takes user-defined input-output examples to synthesize a set a programs consistent with the examples.
 // The input of an example can span across multiple columns in a spreadsheet.
 // The output of an example is expressed in one spreadsheet column.
@@ -23,18 +25,24 @@ type RegularExpr  = Vec<Token>;
 
 // TOOD - Fix type of int
 type int = usize;
+#[derive(Clone)]
 enum Position    { CPos {k:int},
                    Pos  {r1:RegularExpr, r2:RegularExpr, c:Vec<int>} }
 
 // TODO - Need to define struct Loop
 // TODO - Redefine Concatenate to use DAGS to represent atomic expressions
+#[derive(Clone)]
 enum AtomicExpr  { SubStr   {v:String, p1:Vec<Position>, p2:Vec<Position>},
-                   ConstStr {s:String} }
+                   ConstStr {s:String},
+                   Loop     {e:DAG} }
+
 type Concatenate = Vec<AtomicExpr>;
 type DAG         = Concatenate;
 
 struct Match     { v:String, r:RegularExpr, k:int }
 struct NotMatch  { v:String, r:RegularExpr, k:int }
+
+#[derive(Clone)]
 enum Predicate   { Match    {v:String, r:RegularExpr, k:int},
                    NotMatch {v:String, r:RegularExpr, k:int} }
 
@@ -46,6 +54,9 @@ type StringExpr = Switch;
 
 type ExampleInputSet = Vec<ExampleInput>;
 struct Traces { b_vec:Vec<ExampleInputSet>, e_vec:Vec<DAG> }
+
+type IntPair = (int, int);
+type EdgeMap = HashMap<IntPair, Vec<AtomicExpr>>;
 
 fn util_vec_diff<T> (a: Vec<T>, b:Vec<T>) -> Vec<T> {
     panic!();
@@ -70,6 +81,15 @@ fn util_cth_match (substr:String, r:RegularExpr, s:String) -> (int, int) {
 fn util_substr_pos (s:String, substr:String) -> int {
     panic!();
 }
+
+fn util_unify (e1:DAG, e2:DAG) -> DAG {
+    panic!();
+}
+
+fn util_match_loop(e:DAG, example_input:ExampleInput, substring:String) -> bool {
+    panic!();
+}
+    
 fn iParts (tok:Token, s:String) -> Token {
     panic!();
 }
@@ -108,9 +128,31 @@ fn generate_str (example_input:ExampleInput, example_output:SpreadsheetColumn) -
     panic!();
 }
 
-// TODO Add parameter W
-fn generate_loop (example_input:ExampleInput, example_output:SpreadsheetColumn) {
-    panic!();
+fn generate_loop (example_input:ExampleInput, example_output:SpreadsheetColumn, w:EdgeMap) -> HashMap<IntPair, Vec<AtomicExpr>> {
+    let mut map = w;
+    for k2 in 0..example_input.len() {
+        for k1 in 0..k2 {
+            for k3 in k2..example_input.len() {
+                let substring1: String = String::from(&example_output[k1 .. k2]);
+                let substring2: String = String::from(&example_output[k2 .. k3]);
+                let e1_set: DAG = generate_str(example_input.clone(), substring1);
+                let e2_set: DAG = generate_str(example_input.clone(), substring2);
+                let e_set : DAG = util_unify(e1_set, e2_set);
+                
+                for k4 in 0..example_input.len() {
+                    let substring: String = String::from(&example_output[k1 .. k4]);
+                    if util_match_loop(e_set.clone(), example_input.clone(), substring) {
+                        let loop_exp: AtomicExpr = AtomicExpr::Loop { e:e_set.clone() };
+                        match map.get_mut(&(k1, k4)) {
+                            Some(uu) => uu.push(loop_exp),
+                            None     => (),
+                        }
+                    }
+                }
+            }
+        }
+    }
+    map
 }
 
 fn generate_substring (example_input:ExampleInput, s:String) -> Vec<AtomicExpr> {
@@ -121,6 +163,7 @@ fn generate_substring (example_input:ExampleInput, s:String) -> Vec<AtomicExpr> 
         let y1 = generate_position(example_input_col.clone(), k);
         let y2 = generate_position(example_input_col.clone(), (k + s.len()));
         let substring: AtomicExpr = AtomicExpr::SubStr { v:example_input_col.clone(), p1:y1, p2:y2 };
+        result.push(substring);
     }
     result
 }
