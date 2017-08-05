@@ -8,7 +8,7 @@
 // The contents of any spreadsheet cell is treated as a string.
 
 // For simplifying the implementation, I've used alternative data structures in many places.
-// For example, the paper represents the input of an example as a tuple of spreadsheet columns.
+// For example, The paper represents the input of an example as a tuple of spreadsheet columns.
 // I'm using a Vec of spreadsheet columns instead. Column contents are represented as strings as mentioned before. 
 type SpreadsheetColumn = String;
 type ExampleInput      = Vec<SpreadsheetColumn>;
@@ -21,9 +21,10 @@ enum SpecialToken { SlashTok }
 enum Token        { SpecialToken }
 type RegularExpr  = Vec<Token>;
 
-type int = i32;
+// TOOD - Fix type of int
+type int = usize;
 enum Position    { CPos {k:int},
-                   Pos  {r1:RegularExpr, r2:RegularExpr, c:int} }
+                   Pos  {r1:RegularExpr, r2:RegularExpr, c:Vec<int>} }
 
 // TODO - Need to define struct Loop
 // TODO - Redefine Concatenate to use DAGS to represent atomic expressions
@@ -58,10 +59,18 @@ fn util_compatibility (e_vec1:Vec<DAG>, e_vec2:Vec<DAG>) -> bool {
     panic!();
 }
 
+fn util_matching_tokens (s:String) -> Vec<RegularExpr> {
+    panic!();
+}
+
+fn util_cth_match (substr:String, r:RegularExpr, s:String) -> (int, int) {
+    panic!();
+}
+
 fn iParts (tok:Token, s:String) -> Token {
     panic!();
 }
-    
+
 fn generate_string_program (example_inputs:Vec<ExampleInput>, example_outputs:Vec<SpreadsheetColumn>) -> StringExpr {
     let mut b_vec_init:  Vec<ExampleInputSet> = Vec::new();
     let mut e_vec_init:  Vec<DAG>             = Vec::new();
@@ -105,13 +114,38 @@ fn generate_substring (example_input:ExampleInput, s:String) {
     panic!();
 }
 
-fn generate_position (s:String, k:int) {
+fn generate_position (s:String, k:int) -> Vec<Position> {
+    let s_len_as_int = s.len() as int;
     let mut result: Vec<Position> = Vec::new();
     let cpos_init_1: Position = Position::CPos { k:k };
-    let cpos_init_2: Position = Position::CPos { k:(k - (s.len() as int)) };
+    let cpos_init_2: Position = Position::CPos { k:(k - s_len_as_int) };
     result.push(cpos_init_1);
     result.push(cpos_init_2);
-    panic!();
+
+    for k1 in 0..k {
+        for k2 in k..s_len_as_int {
+            let substring1 : String = String::from(&s[k1 .. k]);
+            let substring2 : String = String::from(&s[k .. k2]);
+            let r1_set: Vec<RegularExpr> = util_matching_tokens(substring1.clone());
+            let r2_set: Vec<RegularExpr> = util_matching_tokens(substring2.clone());
+            for i in 0..substring1.len() {
+                for j in 0..substring2.len() {
+                    let mut r1 = r1_set[i].clone();
+                    let mut r2 = r2_set[j].clone();
+                    r1.extend(r2.clone());
+
+                    let substring : String = String::from(&s[k1 .. k2]);
+                    let (c, total) = util_cth_match(substring, r1.clone(), s.clone());
+
+                    let regex1 = generate_regex(r1.clone(), s.clone());
+                    let regex2 = generate_regex(r2.clone(), s.clone());
+
+                    let pos: Position = Position::Pos { r1:regex1, r2:regex2, c:vec![c, ((c+1) - total)] };
+                }
+            }
+        }
+    }
+    result
 }
 
 fn generate_regex (r:RegularExpr, s:String) -> RegularExpr {
