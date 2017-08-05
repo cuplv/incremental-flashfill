@@ -55,6 +55,7 @@ struct Switch { bool_vec:Vec<Bool>, e_vec:Vec<DAG> }
 type StringExpr = Switch;
 
 type ExampleInputSet = Vec<ExampleInput>;
+#[derive(Clone)]
 struct Traces { b_vec:Vec<ExampleInputSet>, e_vec:Vec<DAG> }
 
 type IntPair = (int, int);
@@ -91,7 +92,18 @@ fn util_unify (e1:DAG, e2:DAG) -> DAG {
 fn util_match_loop(e:DAG, example_input:ExampleInput, substring:String) -> bool {
     panic!();
 }
-    
+
+fn util_exists_comp_traces(t:Traces) -> bool {
+    panic!();
+}
+
+fn util_difference(t:Traces, example_input_set:ExampleInputSet, dag:DAG) -> Traces {
+    panic!();
+}
+
+fn util_highest_cs_traces(t:Traces) -> (ExampleInputSet, DAG) {
+    panic!();
+}
 fn iParts (tok:Token, s:String) -> Token {
     panic!();
 }
@@ -106,7 +118,7 @@ fn generate_string_program (example_inputs:Vec<ExampleInput>, example_outputs:Ve
         let dag = generate_str(example_inputs[i].clone(), example_outputs[i].clone());
         traces.e_vec.push(dag);
     }
-    traces = generate_partition(example_inputs, example_outputs);
+    traces = generate_partition(traces);
 
     let mut bool_classifiers: Vec<Bool> = Vec::new();
     for i in 0..traces.b_vec.len() {
@@ -118,8 +130,13 @@ fn generate_string_program (example_inputs:Vec<ExampleInput>, example_outputs:Ve
     switch
 }
 
-fn generate_partition (example_inputs:Vec<ExampleInput>, example_outputs:Vec<SpreadsheetColumn>) -> Traces {
-    panic!();
+fn generate_partition (t:Traces) -> Traces {
+    let mut tt = t;
+    while util_exists_comp_traces (tt.clone()) {
+        let (example_input_set, dag) = util_highest_cs_traces(tt.clone());
+        tt = util_difference(tt, example_input_set, dag);        
+    }
+    tt
 }
 
 fn generate_bool_classifier (example_inputs1:Vec<ExampleInput>, example_inputs2:Vec<ExampleInput>) -> Bool {
