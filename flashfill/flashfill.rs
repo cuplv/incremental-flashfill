@@ -28,7 +28,7 @@ enum Position    { CPos {k:int},
 
 // TODO - Need to define struct Loop
 // TODO - Redefine Concatenate to use DAGS to represent atomic expressions
-enum AtomicExpr  { SubStr   {v:String, p1:Position, p2:Position},
+enum AtomicExpr  { SubStr   {v:String, p1:Vec<Position>, p2:Vec<Position>},
                    ConstStr {s:String} }
 type Concatenate = Vec<AtomicExpr>;
 type DAG         = Concatenate;
@@ -67,6 +67,9 @@ fn util_cth_match (substr:String, r:RegularExpr, s:String) -> (int, int) {
     panic!();
 }
 
+fn util_substr_pos (s:String, substr:String) -> int {
+    panic!();
+}
 fn iParts (tok:Token, s:String) -> Token {
     panic!();
 }
@@ -110,8 +113,16 @@ fn generate_loop (example_input:ExampleInput, example_output:SpreadsheetColumn) 
     panic!();
 }
 
-fn generate_substring (example_input:ExampleInput, s:String) {
-    panic!();
+fn generate_substring (example_input:ExampleInput, s:String) -> Vec<AtomicExpr> {
+    let mut result: Vec<AtomicExpr> = Vec::new();
+    for i in 0..example_input.len() {
+        let example_input_col = example_input[i].clone();
+        let k  = util_substr_pos(s.clone(), example_input_col.clone());
+        let y1 = generate_position(example_input_col.clone(), k);
+        let y2 = generate_position(example_input_col.clone(), (k + s.len()));
+        let substring: AtomicExpr = AtomicExpr::SubStr { v:example_input_col.clone(), p1:y1, p2:y2 };
+    }
+    result
 }
 
 fn generate_position (s:String, k:int) -> Vec<Position> {
