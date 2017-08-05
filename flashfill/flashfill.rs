@@ -37,7 +37,9 @@ enum AtomicExpr  { SubStr   {v:String, p1:Vec<Position>, p2:Vec<Position>},
                    Loop     {e:DAG} }
 
 type Concatenate = Vec<AtomicExpr>;
-type DAG         = Concatenate;
+#[derive(Clone)]
+enum DAG         { Graph {states:Vec<int>, start_state:Vec<int>, end_state:Vec<int>, edges:Vec<IntPair>, w:EdgeMap} }
+
 
 struct Match     { v:String, r:RegularExpr, k:int }
 struct NotMatch  { v:String, r:RegularExpr, k:int }
@@ -125,7 +127,27 @@ fn generate_bool_classifier (example_inputs1:Vec<ExampleInput>, example_inputs2:
 }
 
 fn generate_str (example_input:ExampleInput, example_output:SpreadsheetColumn) -> DAG {
-    panic!();
+    let mut states:      Vec<int> = (0 .. example_output.len()).collect();
+    let mut start_state: Vec<int> = vec![0];
+    let mut end_state:   Vec<int> = vec![example_output.len()];
+
+    let mut edges: Vec<IntPair> = Vec::new();
+    let mut w: EdgeMap          = HashMap::new();
+    for j in 1..example_input.len() {
+        for i in 0..j {
+            edges.push((i, j));
+
+            let substr: String      = String::from(&example_output[i .. (j - 1)]);
+            let consexp: AtomicExpr = AtomicExpr::ConstStr {s:substr.clone()};
+            
+            let mut subexps: Vec<AtomicExpr> = generate_substring(example_input.clone(), substr);
+            subexps.push(consexp);
+            w.insert((i,j), subexps.clone());
+        }
+    }
+    w = generate_loop(example_input.clone(), example_output.clone(), w);
+    let dag = DAG::Graph { states:states, start_state:start_state, end_state:end_state, edges:edges, w:w };
+    dag
 }
 
 fn generate_loop (example_input:ExampleInput, example_output:SpreadsheetColumn, w:EdgeMap) -> HashMap<IntPair, Vec<AtomicExpr>> {
