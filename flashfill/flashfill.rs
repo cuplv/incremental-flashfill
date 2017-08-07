@@ -61,6 +61,7 @@ struct Traces { b_vec:Vec<ExampleInputSet>, e_vec:Vec<DAG> }
 type IntPair = (int, int);
 type EdgeMap = HashMap<IntPair, Vec<AtomicExpr>>;
 
+// some utility functions
 fn util_vec_diff<T> (a: Vec<T>, b:Vec<T>) -> Vec<T> {
     panic!();
 }
@@ -89,25 +90,39 @@ fn util_unify (e1:DAG, e2:DAG) -> DAG {
     panic!();
 }
 
-fn util_match_loop(e:DAG, example_input:ExampleInput, substring:String) -> bool {
+fn util_match_loop (e:DAG, example_input:ExampleInput, substring:String) -> bool {
     panic!();
 }
 
-fn util_exists_comp_traces(t:Traces) -> bool {
+fn util_exists_comp_traces (t:Traces) -> bool {
     panic!();
 }
 
-fn util_difference(t:Traces, example_input_set:ExampleInputSet, dag:DAG) -> Traces {
+fn util_difference (t:Traces, example_input_set:ExampleInputSet, dag:DAG) -> Traces {
     panic!();
 }
 
-fn util_highest_cs_traces(t:Traces) -> (ExampleInputSet, DAG) {
+fn util_highest_cs_traces (t:Traces) -> (ExampleInputSet, DAG) {
     panic!();
 }
+
+fn util_vec_not_null<T> (v:Vec<T>) -> bool {
+    panic!();
+}
+
+fn util_highest_csp(e1:Vec<ExampleInput>, e2:Vec<ExampleInput>) -> Predicate {
+    panic!();
+}
+
+fn generate_preds(e1:Vec<ExampleInput>, e2:Vec<ExampleInput>) -> Vec<Predicate> {
+    panic!();
+}
+
 fn iParts (tok:Token, s:String) -> Token {
     panic!();
 }
 
+// algorithm for learning string programs that are consistent with a given set S of input-output examples
 fn generate_string_program (example_inputs:Vec<ExampleInput>, example_outputs:Vec<SpreadsheetColumn>) -> StringExpr {
     let mut b_vec_init:  Vec<ExampleInputSet> = Vec::new();
     let mut e_vec_init:  Vec<DAG>             = Vec::new();
@@ -139,7 +154,24 @@ fn generate_partition (t:Traces) -> Traces {
     tt
 }
 
+// TODO Look into the 'Copy' trait to avoid having to use "clone()" everywhere.
+// TODO Figure out how to lift true/false to Predicate type.
 fn generate_bool_classifier (example_inputs1:Vec<ExampleInput>, example_inputs2:Vec<ExampleInput>) -> Bool {
+    let mut e1 = example_inputs1.clone();
+    let mut b  = false;
+
+    while util_vec_not_null(e1.clone()) {
+        let mut e1_old = e1.clone();
+        let mut e2     = example_inputs2.clone();
+        let mut e1_cp  = e1.clone();
+        let mut d      = true;
+
+        while util_vec_not_null(e2.clone()) {
+            let mut e2_old = e2.clone();
+            let mut preds  = generate_preds(example_inputs1.clone(), example_inputs2.clone());
+            let mut high_pred = util_highest_csp(e1_cp.clone(), e2.clone());
+        }     
+    }
     panic!();
 }
 
