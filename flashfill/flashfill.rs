@@ -62,8 +62,14 @@ type IntPair = (int, int);
 type EdgeMap = HashMap<IntPair, Vec<AtomicExpr>>;
 
 // some utility functions
-fn util_vec_diff<T> (a: Vec<T>, b:Vec<T>) -> Vec<T> {
-    panic!();
+fn util_vec_diff<T:PartialEq+Clone> (a: Vec<T>, b:Vec<T>) -> Vec<T> {
+    let mut diff: Vec<T> = Vec::new();
+    for i in 0..a.len() {
+        if !(b.contains(&a[i])) {
+            diff.push(a[i].clone());
+        }
+    }
+    diff
 }
 
 fn util_bool_expr_sort (b_vec:Vec<ExampleInputSet>, e_vec:Vec<DAG>) -> Traces {
@@ -164,13 +170,19 @@ fn generate_bool_classifier (example_inputs1:Vec<ExampleInput>, example_inputs2:
         let mut e1_old = e1.clone();
         let mut e2     = example_inputs2.clone();
         let mut e1_cp  = e1.clone();
-        let mut d      = true;
+        let mut d: Conjuct = Vec::new();
 
         while util_vec_not_null(e2.clone()) {
             let mut e2_old = e2.clone();
             let mut preds  = generate_preds(example_inputs1.clone(), example_inputs2.clone());
             let mut high_pred = util_highest_csp(e1_cp.clone(), e2.clone());
-        }     
+            d.push(high_pred);
+
+            // TODO take diff based on membership
+            if (e2_old == e2) { panic!(); }
+        }
+        // TODO take diff of e1; Update b
+        if (e1_old == e1) { panic!(); }
     }
     panic!();
 }
